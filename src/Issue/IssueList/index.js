@@ -27,9 +27,13 @@ const TRANSITION_STATE = {
 };
 
 const GET_ISSUES_OF_REPOSITORY = gql`
-  query($repositoryOwner: String!, $repositoryName: String!) {
+  query(
+    $repositoryOwner: String!
+    $repositoryName: String!
+    $issueState: IssueState!
+  ) {
     repository(name: $repositoryName, owner: $repositoryOwner) {
-      issues(first: 5) {
+      issues(first: 5, states: [$issueState]) {
         edges {
           node {
             id
@@ -72,6 +76,7 @@ class Issues extends React.Component {
             variables={{
               repositoryOwner,
               repositoryName,
+              issueState,
             }}
           >
             {({ data, loading, error }) => {
@@ -89,19 +94,11 @@ class Issues extends React.Component {
                 return <Loading />;
               }
 
-              const filteredRepository = {
-                issues: {
-                  edges: repository.issues.edges.filter(
-                    (issue) => issue.node.state === issueState
-                  ),
-                },
-              };
-
-              if (!filteredRepository.issues.edges.length) {
+              if (!repository.issues.edges.length) {
                 return <div className="IssueList">No issues ...</div>;
               }
 
-              return <IssueList issues={filteredRepository.issues} />;
+              return <IssueList issues={repository.issues} />;
             }}
           </Query>
         )}
